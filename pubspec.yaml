@@ -1,0 +1,67 @@
+name: finwise
+description: Gestão de orçamento doméstico com voz e Google Sheets
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Auth & Google APIs
+  google_sign_in: ^6.2.1
+  googleapis: ^11.4.0
+  gsheets: any
+
+  # Estado
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navegação
+  go_router: ^14.2.7
+
+  # HTTP
+  dio: ^5.4.3+1
+
+  # Armazenamento local
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: any
+  shared_preferences: ^2.3.1
+
+  # Voz
+  speech_to_text: any
+  flutter_siri_shortcuts: any
+  android_intent_plus: ^6.0.0
+
+  # UI & Gráficos
+  fl_chart: ^0.68.0
+  flutter_animate: ^4.5.0
+  lottie: any
+  cached_network_image: ^3.3.1
+
+  # Utilitários
+  intl: ^0.20.2
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  dartz: ^0.10.1       # Either type para error handling
+  google_fonts: ^8.0.2
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.0
+  mocktail: ^1.0.3
+  very_good_analysis: ^6.0.0
+
+flutter:
+  uses-material-design: true
