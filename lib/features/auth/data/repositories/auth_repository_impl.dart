@@ -24,6 +24,12 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<User?> signInSilently() async {
+    final model = await _dataSource.signInSilently();
+    return model?.toDomain();
+  }
+
+  @override
   Future<void> signOut() async {
     await _dataSource.signOut();
   }

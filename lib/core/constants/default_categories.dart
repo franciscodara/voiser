@@ -8,6 +8,13 @@ class DefaultCategories {
 
   static const List<Category> all = [
     Category(
+      id: 'income_salary',
+      name: 'Receita',
+      icon: Icons.payments_rounded,
+      color: Color(0xFF10B981), // Verde Esmeralda
+      subcategories: ['Salário', 'Freelance', 'Rendimento', 'Bônus', 'Venda', 'Outros'],
+    ),
+    Category(
       id: 'supermarket',
       name: 'Supermercado',
       icon: Icons.shopping_cart_rounded,
@@ -79,4 +86,33 @@ class DefaultCategories {
       return null;
     }
   }
+
+  static Category? findByName(String name) {
+    final normalizedName = _normalizeText(name);
+
+    try {
+      return all.firstWhere((category) => _normalizeText(category.name) == normalizedName);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String _normalizeText(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('à', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ô', 'o')
+        .replaceAll('õ', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ç', 'c');
+  }
 }
+

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +16,22 @@ class GoogleSheetsDatasource {
   Future<void> appendExpense(Expense expense, String spreadsheetId, String accessToken) async {
     final client = GoogleAuthClient({'Authorization': 'Bearer $accessToken'});
     final sheetsApi = sheets.SheetsApi(client);
+
+    // Idempotência: Checa se a despesa já foi enviada no Google Sheets para evitar duplicação em redes fracas
+    try {
+      final getResponse = await sheetsApi.spreadsheets.values.get(spreadsheetId, 'Transações!A:I');
+      final rows = getResponse.values;
+      if (rows != null) {
+        for (int i = 1; i < rows.length; i++) {
+          if (rows[i].length > 8 && rows[i][8].toString() == expense.id) {
+            debugPrint('⚠️ Idempotência: despesa ${expense.id} já existe na planilha — ignorando.');
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Falha ao checar idempotência (continuando): $e');
+    }
 
     final dateFormatter = DateFormat('dd/MM/yyyy');
     final timeFormatter = DateFormat('HH:mm');
@@ -35,13 +52,23 @@ class GoogleSheetsDatasource {
       ],
     );
 
-    await sheetsApi.spreadsheets.values.append(
-      valueRange,
-      spreadsheetId,
-      'Transações!A:I',
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
-    );
+    debugPrint('🌐 Enviando para Transações!A:I — ID: ${expense.id}');
+    try {
+      await sheetsApi.spreadsheets.values.append(
+        valueRange,
+        spreadsheetId,
+        'Transações!A:I',
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+      );
+      debugPrint('🟢 Append concluído com sucesso para: ${expense.id}');
+    } on sheets.DetailedApiRequestError catch (e) {
+      debugPrint('❌ Erro HTTP ${e.status} da API Sheets: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Erro inesperado no append: ${e.runtimeType} — $e');
+      rethrow;
+    }
   }
 
   Future<List<Expense>> getExpenses(String spreadsheetId, String accessToken, {int? month, int? year}) async {

@@ -20,6 +20,7 @@ _$ExpenseImpl _$$ExpenseImplFromJson(Map<String, dynamic> json) =>
       origin: $enumDecodeNullable(_$EntryOriginEnumMap, json['origin']) ??
           EntryOrigin.manual,
       synced: json['synced'] as bool? ?? false,
+      deleted: json['deleted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$ExpenseImplToJson(_$ExpenseImpl instance) =>
@@ -34,6 +35,7 @@ Map<String, dynamic> _$$ExpenseImplToJson(_$ExpenseImpl instance) =>
       'type': _$TransactionTypeEnumMap[instance.type]!,
       'origin': _$EntryOriginEnumMap[instance.origin]!,
       'synced': instance.synced,
+      'deleted': instance.deleted,
     };
 
 const _$TransactionTypeEnumMap = {

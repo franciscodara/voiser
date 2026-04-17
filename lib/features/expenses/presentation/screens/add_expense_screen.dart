@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:finwise/core/constants/app_colors.dart';
+import 'package:finwise/core/constants/default_categories.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/core/widgets/amount_input_field.dart';
 import 'package:finwise/core/widgets/finwise_button.dart';
@@ -13,10 +14,22 @@ import 'package:finwise/features/expenses/domain/entities/category.dart';
 import 'package:finwise/features/expenses/domain/entities/expense.dart';
 import 'package:finwise/features/expenses/presentation/providers/expense_provider.dart';
 import 'package:finwise/features/expenses/presentation/widgets/category_selector.dart';
+import 'package:go_router/go_router.dart';
 
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
-  const AddExpenseScreen({super.key});
+  final double? initialAmount;
+  final String? initialDescription;
+  final String? initialCategoryName;
+  final String? initialSubcategory;
+
+  const AddExpenseScreen({
+    super.key,
+    this.initialAmount,
+    this.initialDescription,
+    this.initialCategoryName,
+    this.initialSubcategory,
+  });
 
   @override
   ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -31,6 +44,39 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   String? _selectedSubcategory;
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
+  bool _isExpense = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyPrefill();
+  }
+
+  void _applyPrefill() {
+    if (widget.initialAmount != null && widget.initialAmount! > 0) {
+      _amountController.text = NumberFormat.currency(
+        locale: 'pt_BR',
+        symbol: 'R\$',
+        decimalDigits: 2,
+      ).format(widget.initialAmount);
+    }
+
+    if (widget.initialDescription != null && widget.initialDescription!.trim().isNotEmpty) {
+      _descriptionController.text = widget.initialDescription!.trim();
+    }
+
+    if (widget.initialCategoryName != null) {
+      final category = DefaultCategories.findByName(widget.initialCategoryName!);
+      if (category != null) {
+        _selectedCategory = category;
+
+        if (widget.initialSubcategory != null &&
+            category.subcategories.contains(widget.initialSubcategory)) {
+          _selectedSubcategory = widget.initialSubcategory;
+        }
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -97,7 +143,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       subcategory: _selectedSubcategory,
       description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
       amount: _parsedAmount,
-      type: TransactionType.expense,
+      type: _isExpense ? TransactionType.expense : TransactionType.income,
       origin: EntryOrigin.manual,
       synced: false,
     );
@@ -125,6 +171,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   void _showSuccess(Expense expense) {
     final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -132,7 +179,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
             const SizedBox(width: 10),
             Text(
-              'Despesa salva! ↩️',
+              _isExpense ? 'Despesa salva! ↩️' : 'Receita salva! 💵',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ],
@@ -141,7 +188,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: 'DESFAZER',
           textColor: Colors.white,
@@ -163,6 +210,42 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     _scrollController.animateTo(0, duration: 300.ms, curve: Curves.easeOut);
   }
 
+  Widget _buildToggleButton({
+    required String title,
+    required bool isSelected,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? activeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: activeColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── UI ───────────────────────────────────────────────────
 
   @override
@@ -173,7 +256,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Adicionar Despesa', style: AppTextStyles.title),
+        title: Text(_isExpense ? 'Adicionar Despesa' : 'Nova Receita', style: AppTextStyles.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded),
           onPressed: () => Navigator.of(context).pop(),
@@ -201,12 +284,50 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Segmented Control Despesa/Receita ───────────
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildToggleButton(
+                      title: 'Despesa',
+                      isSelected: _isExpense,
+                      activeColor: Colors.redAccent,
+                      onTap: () => setState(() {
+                        _isExpense = true;
+                        _selectedCategory = null;
+                        _selectedSubcategory = null;
+                      }),
+                    ),
+                    _buildToggleButton(
+                      title: 'Receita',
+                      isSelected: !_isExpense,
+                      activeColor: Colors.green,
+                      onTap: () => setState(() {
+                        _isExpense = false;
+                        _selectedCategory = null;
+                        _selectedSubcategory = null;
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fade(duration: 300.ms).slideY(begin: -0.2),
+
+            const SizedBox(height: 24),
+
             // ── Campo Valor ──────────────────────────────
             _SectionCard(
               child: Column(
                 children: [
                   Text(
-                    'Quanto foi gasto?',
+                    _isExpense ? 'Quanto foi gasto?' : 'Quanto recebeu?',
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: theme.textTheme.bodySmall?.color,
                     ),
@@ -214,7 +335,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   const SizedBox(height: 4),
                   AmountInputField(
                     controller: _amountController,
-                    isExpense: true,
+                    isExpense: _isExpense,
                   ),
                 ],
               ),
@@ -231,6 +352,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
             CategorySelector(
               selected: _selectedCategory,
+              isExpense: _isExpense,
               onSelected: (cat) {
                 setState(() {
                   _selectedCategory = cat;
@@ -296,7 +418,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
             // ── Botão Salvar ─────────────────────────────
             FinwiseButton(
-              text: 'Salvar despesa',
+              text: _isExpense ? 'Salvar despesa' : 'Salvar receita',
               isLoading: _isSaving,
               onPressed: _save,
             ).animate().fade(delay: 360.ms, duration: 300.ms).slideY(begin: 0.3),

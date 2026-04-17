@@ -23,6 +23,8 @@ class Expense with _$Expense {
     @Default(EntryOrigin.manual) EntryOrigin origin,
     /// true = sincronizado com Sheets; false = pendente
     @Default(false) bool synced,
+    /// true = excluído logicamente offline; false = ativo
+    @Default(false) bool deleted,
   }) = _Expense;
 
   factory Expense.fromJson(Map<String, dynamic> json) => _$ExpenseFromJson(json);

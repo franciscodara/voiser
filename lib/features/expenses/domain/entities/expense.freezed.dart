@@ -33,6 +33,9 @@ mixin _$Expense {
   /// true = sincronizado com Sheets; false = pendente
   bool get synced => throw _privateConstructorUsedError;
 
+  /// true = excluído logicamente offline; false = ativo
+  bool get deleted => throw _privateConstructorUsedError;
+
   /// Serializes this Expense to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -57,7 +60,8 @@ abstract class $ExpenseCopyWith<$Res> {
       double amount,
       TransactionType type,
       EntryOrigin origin,
-      bool synced});
+      bool synced,
+      bool deleted});
 }
 
 /// @nodoc
@@ -85,6 +89,7 @@ class _$ExpenseCopyWithImpl<$Res, $Val extends Expense>
     Object? type = null,
     Object? origin = null,
     Object? synced = null,
+    Object? deleted = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -127,6 +132,10 @@ class _$ExpenseCopyWithImpl<$Res, $Val extends Expense>
           ? _value.synced
           : synced // ignore: cast_nullable_to_non_nullable
               as bool,
+      deleted: null == deleted
+          ? _value.deleted
+          : deleted // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -148,7 +157,8 @@ abstract class _$$ExpenseImplCopyWith<$Res> implements $ExpenseCopyWith<$Res> {
       double amount,
       TransactionType type,
       EntryOrigin origin,
-      bool synced});
+      bool synced,
+      bool deleted});
 }
 
 /// @nodoc
@@ -174,6 +184,7 @@ class __$$ExpenseImplCopyWithImpl<$Res>
     Object? type = null,
     Object? origin = null,
     Object? synced = null,
+    Object? deleted = null,
   }) {
     return _then(_$ExpenseImpl(
       id: null == id
@@ -216,6 +227,10 @@ class __$$ExpenseImplCopyWithImpl<$Res>
           ? _value.synced
           : synced // ignore: cast_nullable_to_non_nullable
               as bool,
+      deleted: null == deleted
+          ? _value.deleted
+          : deleted // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -233,7 +248,8 @@ class _$ExpenseImpl implements _Expense {
       required this.amount,
       this.type = TransactionType.expense,
       this.origin = EntryOrigin.manual,
-      this.synced = false});
+      this.synced = false,
+      this.deleted = false});
 
   factory _$ExpenseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExpenseImplFromJson(json);
@@ -264,9 +280,14 @@ class _$ExpenseImpl implements _Expense {
   @JsonKey()
   final bool synced;
 
+  /// true = excluído logicamente offline; false = ativo
+  @override
+  @JsonKey()
+  final bool deleted;
+
   @override
   String toString() {
-    return 'Expense(id: $id, date: $date, categoryId: $categoryId, categoryName: $categoryName, subcategory: $subcategory, description: $description, amount: $amount, type: $type, origin: $origin, synced: $synced)';
+    return 'Expense(id: $id, date: $date, categoryId: $categoryId, categoryName: $categoryName, subcategory: $subcategory, description: $description, amount: $amount, type: $type, origin: $origin, synced: $synced, deleted: $deleted)';
   }
 
   @override
@@ -287,13 +308,25 @@ class _$ExpenseImpl implements _Expense {
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.origin, origin) || other.origin == origin) &&
-            (identical(other.synced, synced) || other.synced == synced));
+            (identical(other.synced, synced) || other.synced == synced) &&
+            (identical(other.deleted, deleted) || other.deleted == deleted));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, date, categoryId,
-      categoryName, subcategory, description, amount, type, origin, synced);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      date,
+      categoryId,
+      categoryName,
+      subcategory,
+      description,
+      amount,
+      type,
+      origin,
+      synced,
+      deleted);
 
   /// Create a copy of Expense
   /// with the given fields replaced by the non-null parameter values.
@@ -322,7 +355,8 @@ abstract class _Expense implements Expense {
       required final double amount,
       final TransactionType type,
       final EntryOrigin origin,
-      final bool synced}) = _$ExpenseImpl;
+      final bool synced,
+      final bool deleted}) = _$ExpenseImpl;
 
   factory _Expense.fromJson(Map<String, dynamic> json) = _$ExpenseImpl.fromJson;
 
@@ -348,6 +382,10 @@ abstract class _Expense implements Expense {
   /// true = sincronizado com Sheets; false = pendente
   @override
   bool get synced;
+
+  /// true = excluído logicamente offline; false = ativo
+  @override
+  bool get deleted;
 
   /// Create a copy of Expense
   /// with the given fields replaced by the non-null parameter values.

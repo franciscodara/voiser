@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
 import 'package:finwise/features/auth/data/datasources/google_sheets_setup_datasource.dart';
 import '../../domain/entities/expense.dart';
+import '../../domain/repositories/i_expense_repository.dart';
 import '../datasources/local/expense_hive_datasource.dart';
 import '../datasources/remote/google_sheets_datasource.dart';
 import 'package:finwise/core/services/sync_queue_service.dart';
@@ -9,21 +10,22 @@ import 'package:finwise/core/services/sync_queue_service.dart';
 part 'expense_repository_impl.g.dart';
 
 @Riverpod(keepAlive: true)
-ExpenseRepository expenseRepository(ExpenseRepositoryRef ref) {
-  return ExpenseRepository(
+IExpenseRepository expenseRepository(ExpenseRepositoryRef ref) {
+  return ExpenseRepositoryImpl(
     ref.read(expenseHiveDatasourceProvider),
     ref.read(googleSheetsDatasourceProvider),
     ref,
   );
 }
 
-class ExpenseRepository {
+class ExpenseRepositoryImpl implements IExpenseRepository {
   final ExpenseHiveDatasource _localDatasource;
   final GoogleSheetsDatasource _remoteDatasource;
   final ExpenseRepositoryRef _ref;
 
-  ExpenseRepository(this._localDatasource, this._remoteDatasource, this._ref);
+  ExpenseRepositoryImpl(this._localDatasource, this._remoteDatasource, this._ref);
 
+  @override
   Future<void> saveExpense(Expense expense) async {
     final pendingExpense = expense.copyWith(synced: false);
     await _localDatasource.saveExpense(pendingExpense);
@@ -32,22 +34,19 @@ class ExpenseRepository {
     _ref.read(syncQueueServiceProvider).processQueue();
   }
 
+  @override
   Future<List<Expense>> getLocalExpenses() async {
-    return await _localDatasource.getAllExpenses();
+    final all = await _localDatasource.getAllExpenses();
+    return all.where((e) => !e.deleted).toList();
   }
 
+  @override
   Future<void> deleteExpense(Expense expense) async {
-    await _localDatasource.deleteExpense(expense.id);
+    // Soft Delete: Marca como deletado, tira o sync flag e salva.
+    final deletedExpense = expense.copyWith(deleted: true, synced: false);
+    await _localDatasource.saveExpense(deletedExpense);
     
-    try {
-      final user = await _ref.read(authNotifierProvider.future);
-      if (user != null) {
-        final sheetsSetup = _ref.read(googleSheetsSetupDatasourceProvider);
-        final spreadsheetId = await sheetsSetup.getStoredSpreadsheetId();
-        if (spreadsheetId != null) {
-          await _remoteDatasource.deleteExpense(expense.id, spreadsheetId, user.accessToken);
-        }
-      }
-    } catch (_) {}
+    // Dispara a queue que irá cuidar do hard-delete remotamente e depois limpar o Hive
+    _ref.read(syncQueueServiceProvider).processQueue();
   }
 }

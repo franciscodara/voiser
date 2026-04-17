@@ -1,27 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'expense_repository_impl.dart';
+part of 'parse_voice_command.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$expenseRepositoryHash() => r'2b9b76f282895cd8303be250c3a36acc807fcacf';
+String _$parseVoiceCommandUseCaseHash() =>
+    r'007e5c8121bfe15809f21928368df8c339796cb9';
 
-/// See also [expenseRepository].
-@ProviderFor(expenseRepository)
-final expenseRepositoryProvider = Provider<IExpenseRepository>.internal(
-  expenseRepository,
-  name: r'expenseRepositoryProvider',
+/// See also [parseVoiceCommandUseCase].
+@ProviderFor(parseVoiceCommandUseCase)
+final parseVoiceCommandUseCaseProvider =
+    Provider<ParseVoiceCommandUseCase>.internal(
+  parseVoiceCommandUseCase,
+  name: r'parseVoiceCommandUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$expenseRepositoryHash,
+      : _$parseVoiceCommandUseCaseHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef ExpenseRepositoryRef = ProviderRef<IExpenseRepository>;
+typedef ParseVoiceCommandUseCaseRef = ProviderRef<ParseVoiceCommandUseCase>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

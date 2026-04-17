@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>AddExpenseIntent</string>
+	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Preciso te ouvir para anotar despesas.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Preciso reconhecer sua voz para processar as despesas.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

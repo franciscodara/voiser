@@ -1,30 +1,54 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/google_auth_client.dart';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 part 'google_sheets_setup_datasource.g.dart';
 
 @riverpod
-GoogleSheetsSetupDatasource googleSheetsSetupDatasource(GoogleSheetsSetupDatasourceRef ref) {
-  return GoogleSheetsSetupDatasource(const FlutterSecureStorage());
+Future<GoogleSheetsSetupDatasource> googleSheetsSetupDatasource(GoogleSheetsSetupDatasourceRef ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  
+  // Migração do armazenamento antigo (FlutterSecureStorage) para o novo (SharedPreferences)
+  const key = 'finwise_spreadsheet_id';
+  if (prefs.getString(key) == null) {
+    const secureStorage = FlutterSecureStorage();
+    try {
+      final oldId = await secureStorage.read(key: key);
+      if (oldId != null && oldId.isNotEmpty) {
+        await prefs.setString(key, oldId);
+      }
+    } catch (_) {
+      // Ignorar erros caso não seja possível ler chave antiga
+    }
+  }
+
+  return GoogleSheetsSetupDatasource(prefs);
 }
 
 class GoogleSheetsSetupDatasource {
   static const _spreadsheetIdKey = 'finwise_spreadsheet_id';
-  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
-  GoogleSheetsSetupDatasource(this._secureStorage);
+  GoogleSheetsSetupDatasource(this._prefs);
 
-  Future<String?> getStoredSpreadsheetId() async {
-    return await _secureStorage.read(key: _spreadsheetIdKey);
+  String? getStoredSpreadsheetId() {
+    return _prefs.getString(_spreadsheetIdKey);
   }
 
   Future<String> setupFinWiseSpreadsheet(Map<String, String> authHeaders) async {
     // 1. Check if already exists
-    final existingId = await getStoredSpreadsheetId();
+    final existingId = getStoredSpreadsheetId();
     if (existingId != null && existingId.isNotEmpty) {
       return existingId;
+    }
+
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      throw Exception('Sem conexão com a internet. Não foi possível configurar a planilha do Google Sheets.');
     }
 
     // 2. Setup auth client
@@ -66,7 +90,7 @@ class GoogleSheetsSetupDatasource {
     await _updateHeaders(sheetsApi, spreadsheetId);
 
     // 6. Save locally
-    await _secureStorage.write(key: _spreadsheetIdKey, value: spreadsheetId);
+    await _prefs.setString(_spreadsheetIdKey, spreadsheetId);
 
     return spreadsheetId;
   }
@@ -76,9 +100,9 @@ class GoogleSheetsSetupDatasource {
       valueInputOption: 'USER_ENTERED',
       data: [
         sheets.ValueRange(
-          range: 'Transações!A1:H1',
+          range: 'Transações!A1:I1',
           values: [
-            ['Data', 'Hora', 'Categoria', 'Sub-categoria', 'Descrição', 'Valor', 'Tipo', 'Origem']
+            ['Data', 'Hora', 'Categoria', 'Sub-categoria', 'Descrição', 'Valor', 'Tipo', 'Origem', 'ID']
           ],
         ),
         sheets.ValueRange(

@@ -6,16 +6,21 @@ import 'package:finwise/features/expenses/domain/entities/category.dart';
 class CategorySelector extends StatelessWidget {
   final Category? selected;
   final ValueChanged<Category> onSelected;
+  final bool isExpense;
 
   const CategorySelector({
     super.key,
     required this.selected,
     required this.onSelected,
+    this.isExpense = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categories = DefaultCategories.all;
+    final categories = DefaultCategories.all.where((c) {
+      if (isExpense) return c.id != 'income_salary';
+      return c.id == 'income_salary';
+    }).toList();
 
     return GridView.builder(
       shrinkWrap: true,

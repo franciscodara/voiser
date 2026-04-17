@@ -44,6 +44,31 @@ class GoogleAuthDataSource {
     }
   }
 
+  Future<UserModel?> signInSilently() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+
+      if (accessToken == null) throw Exception("No access token obtained during silent sign-in");
+
+      final userModel = UserModel(
+        uid: googleUser.id,
+        email: googleUser.email,
+        displayName: googleUser.displayName ?? 'Usuário',
+        photoUrl: googleUser.photoUrl,
+        accessToken: accessToken,
+      );
+
+      await _secureStorage.write(key: 'cached_user', value: jsonEncode(userModel.toJson()));
+      return userModel;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _secureStorage.delete(key: 'cached_user');

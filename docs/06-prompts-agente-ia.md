@@ -1,13 +1,11 @@
 # 06 — Blocos de Prompts para o Agente IA
 
-> **Como usar:** Copie cada bloco abaixo e cole no chat do seu agente IA (Claude, Cursor, Windsurf, etc.) **na ordem apresentada**, uma etapa por vez. Aguarde a conclusão e validação antes de passar para o próximo bloco. Use o **Google Antigravity** como IDE com o projeto Flutter aberto.
-
 ---
 
 ## 🧱 BLOCO 0 — Setup Inicial do Projeto
 
 ```
-Sou um desenvolvedor usando Google Antigravity no Linux com Android Studio instalado para testes.
+Sou um desenvolvedor usando Google Antigravity no windows com Android Studio instalado para testes.
 
 Preciso criar um projeto Flutter chamado "finwise" do zero. Por favor:
 

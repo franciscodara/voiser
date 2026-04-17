@@ -30,7 +30,7 @@ class ExpenseHiveDatasource {
     final data = box.get(id);
     if (data != null) {
       try {
-        final expense = Expense.fromJson(jsonDecode(data));
+        final expense = Expense.fromJson(jsonDecode(data) as Map<String, dynamic>);
         final updatedExpense = expense.copyWith(synced: true);
         await box.put(id, jsonEncode(updatedExpense.toJson()));
       } catch (e) {
@@ -45,7 +45,7 @@ class ExpenseHiveDatasource {
     
     for (final data in box.values) {
       try {
-        final expense = Expense.fromJson(jsonDecode(data));
+        final expense = Expense.fromJson(jsonDecode(data) as Map<String, dynamic>);
         if (!expense.synced) {
           pending.add(expense);
         }
@@ -64,7 +64,7 @@ class ExpenseHiveDatasource {
     
     for (final data in box.values) {
       try {
-        all.add(Expense.fromJson(jsonDecode(data)));
+        all.add(Expense.fromJson(jsonDecode(data) as Map<String, dynamic>));
       } catch (e) {
         // Ignorar
       }

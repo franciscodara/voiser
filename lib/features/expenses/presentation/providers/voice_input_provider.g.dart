@@ -1,27 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'expense_repository_impl.dart';
+part of 'voice_input_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$expenseRepositoryHash() => r'2b9b76f282895cd8303be250c3a36acc807fcacf';
+String _$voiceInputNotifierHash() =>
+    r'5425326a7aae001975b762be69c075b2cab47ce0';
 
-/// See also [expenseRepository].
-@ProviderFor(expenseRepository)
-final expenseRepositoryProvider = Provider<IExpenseRepository>.internal(
-  expenseRepository,
-  name: r'expenseRepositoryProvider',
+/// See also [VoiceInputNotifier].
+@ProviderFor(VoiceInputNotifier)
+final voiceInputNotifierProvider =
+    AutoDisposeNotifierProvider<VoiceInputNotifier, VoiceInputState>.internal(
+  VoiceInputNotifier.new,
+  name: r'voiceInputNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$expenseRepositoryHash,
+      : _$voiceInputNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ExpenseRepositoryRef = ProviderRef<IExpenseRepository>;
+typedef _$VoiceInputNotifier = AutoDisposeNotifier<VoiceInputState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

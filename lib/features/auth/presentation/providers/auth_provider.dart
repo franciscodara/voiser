@@ -21,7 +21,7 @@ class AuthNotifier extends _$AuthNotifier {
 
       if (user != null) {
         // After successful login, set up Google Sheets (idempotent — skips if already created)
-        final sheetsSetup = ref.read(googleSheetsSetupDatasourceProvider);
+        final sheetsSetup = await ref.read(googleSheetsSetupDatasourceProvider.future);
         final authHeaders = {'Authorization': 'Bearer ${user.accessToken}'};
 
         final spreadsheetId = await sheetsSetup.setupFinWiseSpreadsheet(authHeaders);
@@ -33,6 +33,18 @@ class AuthNotifier extends _$AuthNotifier {
 
       state = AsyncValue.data(user);
     } catch (e, st) {
+      if (e.toString().contains('401')) {
+        print('🔄 Token expirado, tentando refresh silencioso...');
+        try {
+          final repo = ref.read(authRepositoryProvider);
+          // O signInSilently() faz silent refresh implicitamente se possível
+          final refreshedUser = await repo.signInSilently();
+          if (refreshedUser != null) {
+            state = AsyncValue.data(refreshedUser);
+            return;
+          }
+        } catch (_) {}
+      }
       state = AsyncValue.error(e, st);
     }
   }
