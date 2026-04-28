@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/constants/default_categories.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
+import 'package:finwise/core/utils/app_feedback.dart';
 import 'package:finwise/core/widgets/amount_input_field.dart';
 import 'package:finwise/core/widgets/finwise_button.dart';
 import 'package:finwise/features/expenses/domain/entities/category.dart';
@@ -134,6 +136,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
 
     setState(() => _isSaving = true);
+    HapticFeedback.lightImpact();
 
     final expense = Expense(
       id: _generateId(),
@@ -157,46 +160,17 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.primaryStatusNeg,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    AppFeedback.error(context, message);
   }
 
   void _showSuccess(Expense expense) {
-    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            Text(
-              _isExpense ? 'Despesa salva! ↩️' : 'Receita salva! 💵',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primaryStatusPos,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'DESFAZER',
-          textColor: Colors.white,
-          onPressed: () {
-            ref.read(expenseNotifierProvider.notifier).deleteExpense(expense.id);
-          },
-        ),
-      ),
+    HapticFeedback.mediumImpact();
+    AppFeedback.undo(
+      context,
+      _isExpense ? 'Despesa salva com sucesso! ✅' : 'Receita salva! 💵',
+      onUndo: () {
+        ref.read(expenseNotifierProvider.notifier).deleteExpense(expense.id);
+      },
     );
 
     // Limpa o formulário após salvar

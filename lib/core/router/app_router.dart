@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
@@ -6,8 +7,30 @@ import 'package:finwise/features/home/presentation/screens/home_screen.dart';
 import 'package:finwise/features/expenses/presentation/screens/add_expense_screen.dart';
 import 'package:finwise/features/expenses/presentation/screens/voice_entry_screen.dart';
 import 'package:finwise/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:finwise/features/account/presentation/screens/profile_screen.dart';
+import 'package:finwise/features/account/presentation/screens/settings_screen.dart';
+import 'package:finwise/features/account/presentation/screens/support_screen.dart';
+import 'package:finwise/features/account/presentation/screens/subscription_screen.dart';
 
 part 'app_router.g.dart';
+
+// ── Transição reutilizável ────────────────────────────────────────────────────
+
+Page<T> _fadePage<T>(Widget child) {
+  return CustomTransitionPage<T>(
+    child: child,
+    transitionDuration: const Duration(milliseconds: 220),
+    reverseTransitionDuration: const Duration(milliseconds: 180),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: child,
+      );
+    },
+  );
+}
+
+// ── Router ────────────────────────────────────────────────────────────────────
 
 @riverpod
 GoRouter appRouter(AppRouterRef ref) {
@@ -46,36 +69,53 @@ GoRouter appRouter(AppRouterRef ref) {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => _fadePage(const LoginScreen()),
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomeScreen(),
+        pageBuilder: (context, state) => _fadePage(const HomeScreen()),
       ),
       GoRoute(
         path: '/add-expense',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final amountParam = state.uri.queryParameters['amount'];
           final initialAmount = amountParam == null ? null : double.tryParse(amountParam);
 
-          return AddExpenseScreen(
+          return _fadePage(AddExpenseScreen(
             initialAmount: initialAmount,
             initialDescription: state.uri.queryParameters['description'],
             initialCategoryName: state.uri.queryParameters['categoryName'],
             initialSubcategory: state.uri.queryParameters['subcategory'],
-          );
+          ));
         },
       ),
       GoRoute(
         path: '/voice-entry',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final q = state.uri.queryParameters['query'];
-          return VoiceEntryScreen(initialText: q);
+          return _fadePage(VoiceEntryScreen(initialText: q));
         },
       ),
       GoRoute(
         path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(),
+        pageBuilder: (context, state) => _fadePage(const DashboardScreen()),
+      ),
+      // ── Rotas de conta ──────────────────────────────────────────────
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => _fadePage(const ProfileScreen()),
+      ),
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) => _fadePage(const SettingsScreen()),
+      ),
+      GoRoute(
+        path: '/support',
+        pageBuilder: (context, state) => _fadePage(const SupportScreen()),
+      ),
+      GoRoute(
+        path: '/subscription',
+        pageBuilder: (context, state) => _fadePage(const SubscriptionScreen()),
       ),
     ],
   );

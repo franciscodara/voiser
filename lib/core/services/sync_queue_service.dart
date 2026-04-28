@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:finwise/core/providers/sync_status_provider.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
 import 'package:finwise/features/auth/data/datasources/google_sheets_setup_datasource.dart';
 import 'package:finwise/features/expenses/data/datasources/local/expense_hive_datasource.dart';
@@ -64,12 +65,18 @@ class SyncQueueService {
     if (_isSyncing) return;
     _isSyncing = true;
 
+    // ── Notifica a UI que o sync iniciou (Opção A) ─────────────────────────
+    _ref.read(syncStatusNotifierProvider.notifier).setSyncing();
+
+    bool hadError = false;
+
     try {
       final localDatasource = _ref.read(expenseHiveDatasourceProvider);
       final pendingExpenses = await localDatasource.getPendingExpenses();
 
       if (pendingExpenses.isEmpty) {
         debugPrint('📭 Fila de sync vazia — nada a fazer.');
+        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
         return;
       }
 
@@ -79,6 +86,7 @@ class SyncQueueService {
       final accessToken = await _getFreshAccessToken();
       if (accessToken == null) {
         debugPrint('🔐 Usuário não autenticado — sync abortado.');
+        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
         return;
       }
 
@@ -86,6 +94,7 @@ class SyncQueueService {
       final spreadsheetId = sheetsSetup.getStoredSpreadsheetId();
       if (spreadsheetId == null || spreadsheetId.isEmpty) {
         debugPrint('📄 SpreadsheetId não encontrado — sync abortado.');
+        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
         return;
       }
 
@@ -107,13 +116,23 @@ class SyncQueueService {
             debugPrint('✅ Sincronizado com Sheets: ${expense.id}');
           }
         } catch (e, st) {
+          hadError = true;
           debugPrint('❌ Falha ao sincronizar ${expense.id}: ${e.runtimeType} — $e');
           debugPrintStack(stackTrace: st, maxFrames: 5);
           // Continua para a próxima despesa (não aborta toda a fila)
         }
       }
+    } catch (e) {
+      hadError = true;
+      debugPrint('❌ Erro geral no processQueue: $e');
     } finally {
       _isSyncing = false;
+      // ── Notifica resultado final ──────────────────────────────────────────
+      if (hadError) {
+        _ref.read(syncStatusNotifierProvider.notifier).setError();
+      } else {
+        _ref.read(syncStatusNotifierProvider.notifier).setSuccess();
+      }
     }
   }
 }

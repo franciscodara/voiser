@@ -5,11 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
+import 'package:finwise/core/widgets/shimmer_box.dart';
 import 'package:finwise/features/dashboard/domain/monthly_summary.dart';
 import 'package:finwise/features/dashboard/presentation/dashboard_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({super.key});
+  /// Callback opcional para abrir o Drawer do Scaffold externo.
+  /// Quando fornecido, exibe o ícone de hambúrguer no AppBar.
+  final VoidCallback? onOpenDrawer;
+
+  const DashboardScreen({super.key, this.onOpenDrawer});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,6 +24,13 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: onOpenDrawer != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menu',
+                onPressed: onOpenDrawer,
+              )
+            : null,
         title: Text('Dashboard', style: AppTextStyles.title),
         actions: [
           IconButton(
@@ -733,27 +745,18 @@ class _LoadingSection extends StatelessWidget {
   const _LoadingSection();
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 300,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Carregando dados da planilha...'),
-          ],
-        ),
-      ),
+    return const Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: DashboardSkeleton(),
     );
   }
 }
 
-class _ErrorSection extends StatelessWidget {
+class _ErrorSection extends ConsumerWidget {
   final String message;
   const _ErrorSection({required this.message});
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(24),
@@ -764,7 +767,7 @@ class _ErrorSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded,
+          const Icon(Icons.cloud_off_rounded,
               size: 48, color: AppColors.primaryStatusNeg),
           const SizedBox(height: 12),
           Text('Erro ao carregar',
@@ -775,6 +778,21 @@ class _ErrorSection extends StatelessWidget {
             message,
             style: AppTextStyles.bodySmall,
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () =>
+                ref.read(dashboardNotifierProvider.notifier).refresh(),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Tentar novamente'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primaryStatusPos,
+              foregroundColor: Colors.white,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
           ),
         ],
       ),

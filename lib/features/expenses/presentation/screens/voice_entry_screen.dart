@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/constants/default_categories.dart';
+import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/features/expenses/domain/entities/expense.dart';
 import 'package:finwise/features/expenses/domain/entities/voice_command_result.dart';
 import 'package:finwise/features/expenses/presentation/providers/expense_provider.dart';
@@ -62,25 +64,41 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
     });
   }
 
-  void _confirmExpense(Expense expense) {
+  void _showSuccessAndPop(Expense expense) {
     if (!mounted) return;
 
     ref.read(voiceInputNotifierProvider.notifier).confirm();
     ref.read(expenseNotifierProvider.notifier).addExpense(expense);
     _countdownTimer?.cancel();
 
+    // Mostra feedback, depois volta
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          expense.type == TransactionType.income
-              ? 'Receita salva com sucesso!'
-              : 'Despesa inteligente salva voando!',
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded,
+                color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text(
+              expense.type == TransactionType.income
+                  ? 'Receita salva com sucesso!'
+                  : 'Despesa registrada por voz!',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: AppColors.primaryStatusPos,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        duration: const Duration(seconds: 3),
       ),
     );
     context.pop();
   }
+
+  void _confirmExpense(Expense expense) => _showSuccessAndPop(expense);
 
   void _openManualFallback(VoiceCommandResult result) {
     final queryParameters = <String, String>{};
@@ -118,17 +136,27 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
     final state = ref.watch(voiceInputNotifierProvider);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close,
+              color: Theme.of(context).colorScheme.onSurface),
           onPressed: () {
             ref.read(voiceInputNotifierProvider.notifier).cancel();
             context.pop();
           },
         ),
+        title: Text(
+          _statusLabel(state.status),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color:
+                Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
@@ -138,29 +166,44 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
             const SizedBox(height: 48),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                state.currentText.isEmpty && state.status == VoiceInputStateStatus.listening
-                    ? 'Fale algo como "Gastei 50 reais de gasolina"'
-                    : state.currentText,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 22,
-                  height: 1.5,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
+              child: _buildStatusText(state),
             ),
             const Spacer(),
-            if (state.status == VoiceInputStateStatus.confirming && state.result != null)
+            if (state.status == VoiceInputStateStatus.confirming &&
+                state.result != null)
               _buildConfirmationCard(state)
             else if (state.status == VoiceInputStateStatus.error)
               Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  state.errorMessage ?? 'Erro desconhecido.',
-                  style: const TextStyle(color: Colors.redAccent),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    Icon(Icons.mic_off_rounded,
+                        size: 36,
+                        color: AppColors.primaryStatusNeg.withOpacity(0.8)),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.errorMessage ?? 'Erro desconhecido.',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primaryStatusNeg,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: () => ref
+                          .read(voiceInputNotifierProvider.notifier)
+                          .startListening(),
+                      icon: const Icon(Icons.mic_rounded, size: 18),
+                      label: const Text('Tentar novamente'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryStatusPos,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             const SizedBox(height: 24),
@@ -172,9 +215,11 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
               onPressed: () {
                 ref.read(voiceInputNotifierProvider.notifier).stopAndProcess();
               },
-              backgroundColor: Colors.white24,
+              backgroundColor: AppColors.primaryStatusPos.withOpacity(0.9),
               elevation: 0,
-              label: const Text('Parar agora', style: TextStyle(color: Colors.white)),
+              label: Text('Parar agora',
+                  style: AppTextStyles.bodySmall.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.w600)),
               icon: const Icon(Icons.stop_circle_outlined, color: Colors.white),
             )
           : null,
@@ -183,39 +228,54 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
   }
 
   Widget _buildCenterArea(VoiceInputState state) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (state.status == VoiceInputStateStatus.processing) {
       return Center(
-        child: const CircularProgressIndicator(color: Colors.purpleAccent)
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scaleXY(end: 1.2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppColors.catBar)
+                .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                .scaleXY(end: 1.2),
+            const SizedBox(height: 20),
+            Text(
+              'Processando…',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
       );
     }
+
+    final isListening = state.status == VoiceInputStateStatus.listening;
+    final circleColor = isListening
+        ? AppColors.catBar.withOpacity(0.2)
+        : theme.colorScheme.surface.withOpacity(0.5);
+    final iconColor = isListening ? AppColors.catBar : theme.disabledColor;
 
     return Center(
       child: Container(
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: state.status == VoiceInputStateStatus.listening
-              ? Colors.purple.withOpacity(0.2)
-              : Colors.white10,
+          color: circleColor,
         ),
-        child: Icon(
-          Icons.mic_none_outlined,
-          size: 80,
-          color: state.status == VoiceInputStateStatus.listening
-              ? Colors.purpleAccent
-              : Colors.white54,
-        ),
+        child: Icon(Icons.mic_none_outlined, size: 80, color: iconColor),
       )
-          .animate(target: state.status == VoiceInputStateStatus.listening ? 1 : 0)
+          .animate(target: isListening ? 1 : 0)
           .scaleXY(end: 1.15, duration: 1000.ms, curve: Curves.easeInOutSine)
-          .tint(color: Colors.purple.shade200),
+          .tint(color: AppColors.catBar.withOpacity(0.3)),
     );
   }
 
   Widget _buildConfirmationCard(VoiceInputState state) {
     final result = state.result!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final expense = Expense(
       id: '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(1000)}',
       date: DateTime.now(),
@@ -235,17 +295,30 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
       _startConfirmationTimer(expense);
     }
 
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder =
+        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textPrimary = isDark ? Colors.white : Colors.black87;
+    final textSecondary =
+        isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
+    final chipBg = isDark
+        ? AppColors.catBar.withOpacity(0.15)
+        : Colors.purple.shade50;
+    final chipIcon =
+        isDark ? AppColors.catBar : Colors.purple.shade400;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
+        border: Border.all(color: cardBorder),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.12),
             blurRadius: 20,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -257,10 +330,10 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
+                  color: chipBg,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.auto_awesome, color: Colors.purple.shade400),
+                child: Icon(Icons.auto_awesome, color: chipIcon),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -269,15 +342,15 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
                   children: [
                     Text(
                       'R\$ ${result.amount.toStringAsFixed(2).replaceAll('.', ',')}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: textPrimary,
                       ),
                     ),
                     Text(
                       '${result.category}${result.subcategory != null ? ' • ${result.subcategory}' : ''}',
-                      style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 16, color: textSecondary),
                     ),
                   ],
                 ),
@@ -288,14 +361,17 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
             const SizedBox(height: 16),
             Text(
               '"${result.description}"',
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey.shade500),
+              style: TextStyle(
+                  fontStyle: FontStyle.italic, color: textSecondary),
             ),
           ],
           const SizedBox(height: 8),
           Text(
-            result.type == 'income' ? 'Receita detectada por voz' : 'Despesa detectada por voz',
+            result.type == 'income'
+                ? 'Receita detectada por voz'
+                : 'Despesa detectada por voz',
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -309,16 +385,18 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
                     _countdownTimer?.cancel();
                     ref.read(voiceInputNotifierProvider.notifier).cancel();
                   },
-                  child: const Text('Cancelar', style: TextStyle(color: Colors.red)),
+                  child: Text('Cancelar',
+                      style: TextStyle(color: AppColors.primaryStatusNeg)),
                 ),
               ),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () => _confirmExpense(expense),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppColors.primaryStatusPos,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: Text('Confirmar ($_countdown)'),
@@ -329,5 +407,41 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
         ],
       ),
     ).animate().slideY(begin: 0.5, curve: Curves.easeOutQuart, duration: 600.ms).fadeIn();
+  }
+
+  String _statusLabel(VoiceInputStateStatus status) {
+    switch (status) {
+      case VoiceInputStateStatus.requestingPermission:
+        return 'Solicitando permissão...';
+      case VoiceInputStateStatus.listening:
+        return 'Ouvindo...';
+      case VoiceInputStateStatus.processing:
+        return 'Processando...';
+      case VoiceInputStateStatus.confirming:
+        return 'Confirme o registro';
+      case VoiceInputStateStatus.error:
+        return 'Ocorreu um erro';
+      default:
+        return 'Entrada por voz';
+    }
+  }
+
+  Widget _buildStatusText(VoiceInputState state) {
+    final theme = Theme.of(context);
+    final text = state.currentText.isEmpty &&
+            state.status == VoiceInputStateStatus.listening
+        ? 'Fale algo como "Gastei 50 reais de gasolina"'
+        : state.currentText;
+
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.bodyLarge.copyWith(
+        color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+        height: 1.5,
+        fontWeight: FontWeight.w300,
+        fontSize: 20,
+      ),
+    );
   }
 }
