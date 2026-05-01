@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:finwise/core/providers/sync_status_provider.dart';
-import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
-import 'package:finwise/features/auth/data/datasources/google_sheets_setup_datasource.dart';
 import 'package:finwise/features/expenses/data/datasources/local/expense_hive_datasource.dart';
-import 'package:finwise/features/expenses/data/datasources/remote/google_sheets_datasource.dart';
+import 'package:finwise/features/expenses/data/datasources/remote/supabase_datasource.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:finwise/core/services/sync_pull_service.dart';
 
 part 'sync_queue_service.g.dart';
 
@@ -18,11 +17,6 @@ SyncQueueService syncQueueService(SyncQueueServiceRef ref) {
 class SyncQueueService {
   final SyncQueueServiceRef _ref;
   bool _isSyncing = false;
-  final _googleSignIn = GoogleSignIn(scopes: [
-    'email',
-    'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/spreadsheets',
-  ]);
 
   SyncQueueService(this._ref);
 
@@ -35,37 +29,17 @@ class SyncQueueService {
     });
   }
 
-  /// Obtém um accessToken sempre fresco via GoogleSignIn.
-  /// Evita erros 401 por token expirado (tokens OAuth duram ~1h).
-  Future<String?> _getFreshAccessToken() async {
-    try {
-      // Tenta renovar silenciosamente sem abrir a tela de login
-      final account = await _googleSignIn.signInSilently();
-      if (account == null) {
-        // Fallback: usa o token do provider (pode estar expirado)
-        final user = await _ref.read(authNotifierProvider.future);
-        debugPrint('⚠️ SilentSignIn falhou — usando token do cache.');
-        return user?.accessToken;
-      }
-      final auth = await account.authentication;
-      final token = auth.accessToken;
-      if (token != null) {
-        debugPrint('🔑 Token renovado com sucesso: ${token.substring(0, 20)}...');
-      }
-      return token;
-    } catch (e) {
-      debugPrint('❌ Erro ao renovar token: $e');
-      // Último recurso: token do provider
-      final user = await _ref.read(authNotifierProvider.future);
-      return user?.accessToken;
-    }
-  }
-
   Future<void> processQueue() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      debugPrint('🔐 [SyncQueue] Sessão ausente. Sincronização abortada.');
+      return;
+    }
+
     if (_isSyncing) return;
     _isSyncing = true;
 
-    // ── Notifica a UI que o sync iniciou (Opção A) ─────────────────────────
+    // Notifica a UI que o sync iniciou
     _ref.read(syncStatusNotifierProvider.notifier).setSyncing();
 
     bool hadError = false;
@@ -74,60 +48,48 @@ class SyncQueueService {
       final localDatasource = _ref.read(expenseHiveDatasourceProvider);
       final pendingExpenses = await localDatasource.getPendingExpenses();
 
-      if (pendingExpenses.isEmpty) {
-        debugPrint('📭 Fila de sync vazia — nada a fazer.');
-        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
-        return;
-      }
+      if (pendingExpenses.isNotEmpty) {
+        debugPrint('📋 ${pendingExpenses.length} despesa(s) pendente(s) na fila (PUSH).');
 
-      debugPrint('📋 ${pendingExpenses.length} despesa(s) pendente(s) na fila.');
+        final remoteDatasource = _ref.read(supabaseDatasourceProvider);
 
-      // Obtém token fresco para evitar erros 401
-      final accessToken = await _getFreshAccessToken();
-      if (accessToken == null) {
-        debugPrint('🔐 Usuário não autenticado — sync abortado.');
-        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
-        return;
-      }
-
-      final sheetsSetup = await _ref.read(googleSheetsSetupDatasourceProvider.future);
-      final spreadsheetId = sheetsSetup.getStoredSpreadsheetId();
-      if (spreadsheetId == null || spreadsheetId.isEmpty) {
-        debugPrint('📄 SpreadsheetId não encontrado — sync abortado.');
-        _ref.read(syncStatusNotifierProvider.notifier).setIdle();
-        return;
-      }
-
-      debugPrint('📊 Planilha alvo: $spreadsheetId');
-      final remoteDatasource = _ref.read(googleSheetsDatasourceProvider);
-
-      for (var expense in pendingExpenses) {
-        try {
-          if (expense.deleted) {
-            debugPrint('🗑️ Removendo despesa ${expense.id} remotamente...');
-            await remoteDatasource.deleteExpense(expense.id, spreadsheetId, accessToken);
-            await localDatasource.deleteExpense(expense.id);
-            debugPrint('✅ Despesa deletada: ${expense.id}');
-          } else {
-            debugPrint('⏳ Sincronizando: ${expense.id} | R\$${expense.amount} | ${expense.categoryName}');
-            debugPrint('   Payload: data=${expense.date} | tipo=${expense.type.name} | origem=${expense.origin.name}');
-            await remoteDatasource.appendExpense(expense, spreadsheetId, accessToken);
-            await localDatasource.markAsSynced(expense.id);
-            debugPrint('✅ Sincronizado com Sheets: ${expense.id}');
+        for (var expense in pendingExpenses) {
+          try {
+            debugPrint('⏳ [SyncQueue] Sincronizando: ${expense.id} | Deletado: ${expense.deleted}');
+            
+            // 1. O Upsert resolve tanto inserção, edição, quanto soft-delete (mandando deleted_at).
+            await remoteDatasource.upsertExpense(expense);
+            
+            // 2. Resolve o estado local (Hive)
+            if (expense.deleted || expense.deletedAt != null) {
+              // Se estava marcado para deletar offline, agora que subiu o "deleted_at", limpamos do Hive.
+              await localDatasource.deleteExpense(expense.id);
+              debugPrint('✅ [SyncQueue] Soft delete submetido ao Supabase e removido fisicamente do Hive: ${expense.id}');
+            } else {
+              // Se era inserção/update, marca como sincronizado localmente.
+              await localDatasource.markAsSynced(expense.id);
+              debugPrint('✅ [SyncQueue] Sincronizado com Supabase e Hive atualizado: ${expense.id}');
+            }
+          } catch (e, st) {
+            hadError = true;
+            debugPrint('❌ [SyncQueue] Falha ao sincronizar (PUSH) ${expense.id}: ${e.runtimeType} — $e');
+            debugPrintStack(stackTrace: st, maxFrames: 5);
+            // Continua para a próxima despesa
           }
-        } catch (e, st) {
-          hadError = true;
-          debugPrint('❌ Falha ao sincronizar ${expense.id}: ${e.runtimeType} — $e');
-          debugPrintStack(stackTrace: st, maxFrames: 5);
-          // Continua para a próxima despesa (não aborta toda a fila)
         }
+      } else {
+        debugPrint('📭 Fila de push vazia.');
       }
+
+      // --- Passo 2: PULL (Busca remoto e mescla localmente) ---
+      debugPrint('🔄 [SyncQueue] Iniciando Pull & Merge...');
+      await _ref.read(syncPullServiceProvider).pullAndMerge();
     } catch (e) {
       hadError = true;
-      debugPrint('❌ Erro geral no processQueue: $e');
+      debugPrint('❌ [SyncQueue] Erro geral no processQueue: $e');
     } finally {
       _isSyncing = false;
-      // ── Notifica resultado final ──────────────────────────────────────────
+      // Notifica resultado final
       if (hadError) {
         _ref.read(syncStatusNotifierProvider.notifier).setError();
       } else {

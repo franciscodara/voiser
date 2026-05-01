@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VoiceEntryScreen extends ConsumerStatefulWidget {
   final String? initialText;
@@ -273,11 +274,19 @@ class _VoiceEntryScreenState extends ConsumerState<VoiceEntryScreen> {
   }
 
   Widget _buildConfirmationCard(VoiceInputState state) {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) {
+      return Center(
+        child: Text('Usuário não autenticado', style: TextStyle(color: Colors.red)),
+      );
+    }
+
     final result = state.result!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final expense = Expense(
       id: '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(1000)}',
+      userId: currentUser.id,
       date: DateTime.now(),
       categoryId: result.type == 'income'
           ? 'income'

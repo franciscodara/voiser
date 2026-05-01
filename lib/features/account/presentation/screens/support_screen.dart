@@ -82,7 +82,7 @@ class SupportScreen extends StatelessWidget {
             _SupportChannel(
               icon: Icons.email_outlined,
               label: 'E-mail',
-              value: 'suporte@finwise.app',
+              value: 'suporte@voiser.app',
               color: AppColors.primaryStatusPos,
               isComingSoon: true,
             ),
@@ -127,7 +127,7 @@ class SupportScreen extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'FinWise  ·  v1.0.0',
+                'Voiser  ·  v1.0.0',
                 style: AppTextStyles.bodySmall.copyWith(
                   color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
                 ),

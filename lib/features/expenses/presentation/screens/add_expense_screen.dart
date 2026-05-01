@@ -17,6 +17,7 @@ import 'package:finwise/features/expenses/domain/entities/expense.dart';
 import 'package:finwise/features/expenses/presentation/providers/expense_provider.dart';
 import 'package:finwise/features/expenses/presentation/widgets/category_selector.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
@@ -135,11 +136,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       return;
     }
 
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) {
+      _showError('Usuário não autenticado. Faça login para continuar.');
+      return;
+    }
+
     setState(() => _isSaving = true);
     HapticFeedback.lightImpact();
 
     final expense = Expense(
       id: _generateId(),
+      userId: currentUser.id,
       date: _selectedDate,
       categoryId: _selectedCategory!.id,
       categoryName: _selectedCategory!.name,

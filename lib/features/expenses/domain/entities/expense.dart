@@ -13,6 +13,7 @@ enum EntryOrigin { manual, voice }
 class Expense with _$Expense {
   const factory Expense({
     required String id,
+    required String userId,
     required DateTime date,
     required String categoryId,
     required String categoryName,
@@ -25,6 +26,11 @@ class Expense with _$Expense {
     @Default(false) bool synced,
     /// true = excluído logicamente offline; false = ativo
     @Default(false) bool deleted,
+    
+    // Campos para sincronização e offline-first
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
   }) = _Expense;
 
   factory Expense.fromJson(Map<String, dynamic> json) => _$ExpenseFromJson(json);

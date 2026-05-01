@@ -10,10 +10,10 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
-    final displayName = user?.displayName ?? 'Usuário';
+    final user = ref.watch(authNotifierProvider).user;
+    final firstName = user?.email?.split('@').first ?? 'Usuário';
     final email = user?.email ?? '';
-    final initials = _initials(displayName);
+    final initials = _initials(firstName);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -61,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 20),
 
             Text(
-              displayName,
+              firstName,
               style: AppTextStyles.title.copyWith(fontSize: 22),
               textAlign: TextAlign.center,
             ),

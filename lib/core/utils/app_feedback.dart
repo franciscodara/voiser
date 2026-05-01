@@ -71,7 +71,7 @@ class AppFeedback {
         textColor: AppColors.primaryStatusPos,
         onPressed: onUndo,
       ),
-      duration: const Duration(seconds: 4),
+      duration: const Duration(milliseconds: 1500),
     );
   }
 
@@ -108,6 +108,8 @@ class AppFeedback {
         backgroundColor: backgroundColor,
         duration: duration,
         action: action,
+        showCloseIcon: true,
+        closeIconColor: Colors.white70,
         content: Row(
           children: [
             Icon(icon, color: Colors.white, size: 18),

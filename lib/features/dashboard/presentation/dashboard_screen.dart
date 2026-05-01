@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/core/widgets/shimmer_box.dart';
+import 'package:finwise/core/widgets/feature_gate.dart';
 import 'package:finwise/features/dashboard/domain/monthly_summary.dart';
 import 'package:finwise/features/dashboard/presentation/dashboard_provider.dart';
 
@@ -107,6 +108,17 @@ class DashboardScreen extends ConsumerWidget {
                       _CategoryListCard(summary: state.summary!)
                           .animate()
                           .fade(delay: 400.ms, duration: 400.ms),
+
+                      const SizedBox(height: 32),
+
+                      _SectionTitle(title: 'Insights Inteligentes'),
+                      const SizedBox(height: 12),
+                      FeatureGate(
+                        title: 'Insights Premium',
+                        subtitle: 'Descubra oportunidades de economia e relatórios preditivos gerados por IA.',
+                        child: _PremiumInsightsCard(summary: state.summary!),
+                      ).animate().fade(delay: 500.ms, duration: 400.ms),
+                      
                     ] else
                       _EmptyMonthState(month: state.selectedMonth, year: state.selectedYear)
                           .animate()
@@ -853,6 +865,71 @@ class _SectionTitle extends StatelessWidget {
         color: Theme.of(context).textTheme.bodySmall?.color,
         letterSpacing: 0.6,
         fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+// ─── Insights Premium Card ───────────────────────────────────────────────────
+
+class _PremiumInsightsCard extends StatelessWidget {
+  final MonthlySummary summary;
+
+  const _PremiumInsightsCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final fmt = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: Color(0xFFFBBF24), size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Análise do Mês',
+                style: AppTextStyles.title.copyWith(fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            summary.isPositive 
+                ? 'Ótimo trabalho! Você economizou ${fmt.format(summary.balance)} este mês. Suas despesas principais estão concentradas, o que indica uma oportunidade para otimizar 15% dos gastos recorrentes.'
+                : 'Atenção! Suas despesas superaram a receita em ${fmt.format(summary.balance.abs())}. Recomendamos cortar gastos secundários para o próximo mês.',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.85),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Exportar Relatório PDF',
+                style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

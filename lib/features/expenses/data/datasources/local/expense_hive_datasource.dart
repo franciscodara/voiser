@@ -77,4 +77,9 @@ class ExpenseHiveDatasource {
     final box = await _getBox();
     await box.delete(id);
   }
+
+  Future<void> clearUserData() async {
+    final box = await _getBox();
+    await box.clear();
+  }
 }

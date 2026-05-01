@@ -21,6 +21,7 @@ Expense _$ExpenseFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Expense {
   String get id => throw _privateConstructorUsedError;
+  String get userId => throw _privateConstructorUsedError;
   DateTime get date => throw _privateConstructorUsedError;
   String get categoryId => throw _privateConstructorUsedError;
   String get categoryName => throw _privateConstructorUsedError;
@@ -34,7 +35,11 @@ mixin _$Expense {
   bool get synced => throw _privateConstructorUsedError;
 
   /// true = excluído logicamente offline; false = ativo
-  bool get deleted => throw _privateConstructorUsedError;
+  bool get deleted =>
+      throw _privateConstructorUsedError; // Campos para sincronização e offline-first
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  DateTime? get deletedAt => throw _privateConstructorUsedError;
 
   /// Serializes this Expense to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,6 +57,7 @@ abstract class $ExpenseCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String userId,
       DateTime date,
       String categoryId,
       String categoryName,
@@ -61,7 +67,10 @@ abstract class $ExpenseCopyWith<$Res> {
       TransactionType type,
       EntryOrigin origin,
       bool synced,
-      bool deleted});
+      bool deleted,
+      DateTime? createdAt,
+      DateTime? updatedAt,
+      DateTime? deletedAt});
 }
 
 /// @nodoc
@@ -80,6 +89,7 @@ class _$ExpenseCopyWithImpl<$Res, $Val extends Expense>
   @override
   $Res call({
     Object? id = null,
+    Object? userId = null,
     Object? date = null,
     Object? categoryId = null,
     Object? categoryName = null,
@@ -90,11 +100,18 @@ class _$ExpenseCopyWithImpl<$Res, $Val extends Expense>
     Object? origin = null,
     Object? synced = null,
     Object? deleted = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
               as String,
       date: null == date
           ? _value.date
@@ -136,6 +153,18 @@ class _$ExpenseCopyWithImpl<$Res, $Val extends Expense>
           ? _value.deleted
           : deleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -149,6 +178,7 @@ abstract class _$$ExpenseImplCopyWith<$Res> implements $ExpenseCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String userId,
       DateTime date,
       String categoryId,
       String categoryName,
@@ -158,7 +188,10 @@ abstract class _$$ExpenseImplCopyWith<$Res> implements $ExpenseCopyWith<$Res> {
       TransactionType type,
       EntryOrigin origin,
       bool synced,
-      bool deleted});
+      bool deleted,
+      DateTime? createdAt,
+      DateTime? updatedAt,
+      DateTime? deletedAt});
 }
 
 /// @nodoc
@@ -175,6 +208,7 @@ class __$$ExpenseImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? userId = null,
     Object? date = null,
     Object? categoryId = null,
     Object? categoryName = null,
@@ -185,11 +219,18 @@ class __$$ExpenseImplCopyWithImpl<$Res>
     Object? origin = null,
     Object? synced = null,
     Object? deleted = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
   }) {
     return _then(_$ExpenseImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
               as String,
       date: null == date
           ? _value.date
@@ -231,6 +272,18 @@ class __$$ExpenseImplCopyWithImpl<$Res>
           ? _value.deleted
           : deleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -240,6 +293,7 @@ class __$$ExpenseImplCopyWithImpl<$Res>
 class _$ExpenseImpl implements _Expense {
   const _$ExpenseImpl(
       {required this.id,
+      required this.userId,
       required this.date,
       required this.categoryId,
       required this.categoryName,
@@ -249,13 +303,18 @@ class _$ExpenseImpl implements _Expense {
       this.type = TransactionType.expense,
       this.origin = EntryOrigin.manual,
       this.synced = false,
-      this.deleted = false});
+      this.deleted = false,
+      this.createdAt,
+      this.updatedAt,
+      this.deletedAt});
 
   factory _$ExpenseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExpenseImplFromJson(json);
 
   @override
   final String id;
+  @override
+  final String userId;
   @override
   final DateTime date;
   @override
@@ -284,10 +343,17 @@ class _$ExpenseImpl implements _Expense {
   @override
   @JsonKey()
   final bool deleted;
+// Campos para sincronização e offline-first
+  @override
+  final DateTime? createdAt;
+  @override
+  final DateTime? updatedAt;
+  @override
+  final DateTime? deletedAt;
 
   @override
   String toString() {
-    return 'Expense(id: $id, date: $date, categoryId: $categoryId, categoryName: $categoryName, subcategory: $subcategory, description: $description, amount: $amount, type: $type, origin: $origin, synced: $synced, deleted: $deleted)';
+    return 'Expense(id: $id, userId: $userId, date: $date, categoryId: $categoryId, categoryName: $categoryName, subcategory: $subcategory, description: $description, amount: $amount, type: $type, origin: $origin, synced: $synced, deleted: $deleted, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
   }
 
   @override
@@ -296,6 +362,7 @@ class _$ExpenseImpl implements _Expense {
         (other.runtimeType == runtimeType &&
             other is _$ExpenseImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.date, date) || other.date == date) &&
             (identical(other.categoryId, categoryId) ||
                 other.categoryId == categoryId) &&
@@ -309,7 +376,13 @@ class _$ExpenseImpl implements _Expense {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.origin, origin) || other.origin == origin) &&
             (identical(other.synced, synced) || other.synced == synced) &&
-            (identical(other.deleted, deleted) || other.deleted == deleted));
+            (identical(other.deleted, deleted) || other.deleted == deleted) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -317,6 +390,7 @@ class _$ExpenseImpl implements _Expense {
   int get hashCode => Object.hash(
       runtimeType,
       id,
+      userId,
       date,
       categoryId,
       categoryName,
@@ -326,7 +400,10 @@ class _$ExpenseImpl implements _Expense {
       type,
       origin,
       synced,
-      deleted);
+      deleted,
+      createdAt,
+      updatedAt,
+      deletedAt);
 
   /// Create a copy of Expense
   /// with the given fields replaced by the non-null parameter values.
@@ -347,6 +424,7 @@ class _$ExpenseImpl implements _Expense {
 abstract class _Expense implements Expense {
   const factory _Expense(
       {required final String id,
+      required final String userId,
       required final DateTime date,
       required final String categoryId,
       required final String categoryName,
@@ -356,12 +434,17 @@ abstract class _Expense implements Expense {
       final TransactionType type,
       final EntryOrigin origin,
       final bool synced,
-      final bool deleted}) = _$ExpenseImpl;
+      final bool deleted,
+      final DateTime? createdAt,
+      final DateTime? updatedAt,
+      final DateTime? deletedAt}) = _$ExpenseImpl;
 
   factory _Expense.fromJson(Map<String, dynamic> json) = _$ExpenseImpl.fromJson;
 
   @override
   String get id;
+  @override
+  String get userId;
   @override
   DateTime get date;
   @override
@@ -385,7 +468,13 @@ abstract class _Expense implements Expense {
 
   /// true = excluído logicamente offline; false = ativo
   @override
-  bool get deleted;
+  bool get deleted; // Campos para sincronização e offline-first
+  @override
+  DateTime? get createdAt;
+  @override
+  DateTime? get updatedAt;
+  @override
+  DateTime? get deletedAt;
 
   /// Create a copy of Expense
   /// with the given fields replaced by the non-null parameter values.

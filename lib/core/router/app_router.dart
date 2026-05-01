@@ -39,13 +39,13 @@ GoRouter appRouter(AppRouterRef ref) {
   return GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
-      final isAuth = authNotifier.valueOrNull != null;
+      final status = authNotifier.status;
       final isLoggingIn = state.matchedLocation == '/login';
 
-      if (authNotifier.isLoading) return null;
+      if (status == AuthStatus.loading) return null;
 
-      if (!isAuth && !isLoggingIn) return '/login';
-      if (isAuth && isLoggingIn) return '/home';
+      if (status == AuthStatus.unauthenticated && !isLoggingIn) return '/login';
+      if (status == AuthStatus.authenticated && isLoggingIn) return '/home';
 
       return null;
     },

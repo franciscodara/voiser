@@ -132,10 +132,10 @@ class _HomeContentState extends ConsumerState<_HomeContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider).user;
     final expensesAsync = ref.watch(expenseNotifierProvider);
     final firstName =
-        user?.displayName.split(' ').first ?? 'Usuário';
+        user?.email?.split('@').first ?? 'Usuário';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -147,7 +147,7 @@ class _HomeContentState extends ConsumerState<_HomeContent> {
           tooltip: 'Menu',
           onPressed: widget.onOpenDrawer,
         ),
-        title: Text('FinWise', style: AppTextStyles.title),
+        title: Text('Voiser', style: AppTextStyles.title),
         centerTitle: false,
       ),
       body: Column(

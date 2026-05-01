@@ -1,13 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
+import 'package:finwise/features/subscription/presentation/providers/plan_provider.dart';
 
-class SubscriptionScreen extends StatelessWidget {
+class SubscriptionScreen extends ConsumerWidget {
   const SubscriptionScreen({super.key});
 
+  Future<void> _launchStripeCheckout(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(authNotifierProvider).user;
+    if (user == null) return;
+
+    // Idealmente você coloca seu link real no .env (STRIPE_PAYMENT_LINK)
+    final baseLink = dotenv.env['STRIPE_PAYMENT_LINK'] ?? 'https://buy.stripe.com/test_XXXXXXXXXXXX';
+    // O Stripe aceita prefilled_email para já vir com o e-mail preenchido
+    final url = Uri.parse('$baseLink?client_reference_id=${user.id}&prefilled_email=${user.email}');
+    
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível abrir o link de pagamento.')),
+        );
+      }
+    } else {
+      // Quando o navegador/webview fechar (o usuário volta ao app), checamos o status novamente
+      ref.read(planNotifierProvider.notifier).refreshSubscription();
+      
+      // Fallback: se você quiser continuar usando o upgrade falso enquanto não tem webhook real
+      // ref.read(planNotifierProvider.notifier).upgradeToPremiumTemporarily();
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final subscription = ref.watch(planNotifierProvider);
+    final isPremium = subscription.isPremium;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -49,11 +80,11 @@ class SubscriptionScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Plano Free',
+                          isPremium ? 'Plano Premium' : 'Plano Free',
                           style: AppTextStyles.title.copyWith(fontSize: 16),
                         ),
                         Text(
-                          'Plano atual',
+                          isPremium ? 'Seu plano atual' : 'Plano atual',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: theme.textTheme.bodySmall?.color
                                 ?.withOpacity(0.55),
@@ -114,7 +145,7 @@ class SubscriptionScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'FinWise Premium',
+                        'Voiser Premium',
                         style: AppTextStyles.title.copyWith(
                           color: Colors.white,
                           fontSize: 20,
@@ -124,7 +155,9 @@ class SubscriptionScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Em breve — aguarde!',
+                    isPremium 
+                        ? 'Você já possui acesso total aos recursos Premium.' 
+                        : 'Desbloqueie todo o poder do Voiser e controle sua vida financeira.',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: Colors.white60,
                     ),
@@ -155,21 +188,22 @@ class SubscriptionScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: null, // Em breve
+                      onPressed: isPremium ? null : () => _launchStripeCheckout(context, ref),
                       style: FilledButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.18),
-                        disabledBackgroundColor:
-                            Colors.white.withOpacity(0.12),
+                        backgroundColor: isPremium 
+                            ? Colors.white.withOpacity(0.18) 
+                            : Colors.white,
+                        disabledBackgroundColor: Colors.white.withOpacity(0.12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: Text(
-                        'Em breve',
+                        isPremium ? 'Você já é Premium' : 'Assinar Premium',
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w600,
+                          color: isPremium ? Colors.white70 : const Color(0xFF6D28D9),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),

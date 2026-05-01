@@ -61,9 +61,8 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
-
-    final displayName = user?.displayName ?? 'Usuário';
+    final user = ref.watch(authNotifierProvider).user;
+    final firstName = user?.email?.split('@').first ?? 'Usuário';
     final email = user?.email ?? '';
 
     return Drawer(
@@ -73,7 +72,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
         children: [
           // ── Header ────────────────────────────────────────────────
           AppDrawerHeader(
-            displayName: displayName,
+            displayName: firstName,
             email: email,
             plan: 'Free',
           ),
@@ -103,7 +102,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     label: 'Assinatura',
                     iconColor: const Color(0xFFFBBF24),
                     isActive: _activeRoute == '/subscription',
-                    badge: 'Em breve',
                     showDivider: true,
                     onTap: () => _navigate('/subscription'),
                   ),
@@ -172,7 +170,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'FinWise  ·  v1.0.0',
+                  'Voiser  ·  v1.0.0',
                   style: AppTextStyles.label.copyWith(
                     color: theme.textTheme.bodySmall?.color
                         ?.withValues(alpha: 0.3),
