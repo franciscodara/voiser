@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:finwise/core/constants/app_colors.dart';
-import 'package:finwise/core/services/sync_queue_service.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/core/utils/app_feedback.dart';
 import 'package:finwise/core/widgets/shimmer_box.dart';
@@ -89,8 +88,9 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
 
   /// Swipe direita: atualiza lista local e dispara sync da fila pendente.
   Future<void> _handleSync(BuildContext context) async {
-    await ref.read(expenseNotifierProvider.notifier).refreshExpenses();
-    ref.read(syncQueueServiceProvider).processQueue();
+    await ref
+        .read(expenseNotifierProvider.notifier)
+        .refreshExpenses(syncRemote: true);
 
     if (!context.mounted) return;
     AppFeedback.info(context, 'Sincronizando dados...');
@@ -141,7 +141,9 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () =>
-                ref.read(expenseNotifierProvider.notifier).refreshExpenses(),
+                ref
+                    .read(expenseNotifierProvider.notifier)
+                    .refreshExpenses(syncRemote: true),
           ),
         ],
       ),
@@ -150,7 +152,9 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
         error: (e, _) => _ListErrorState(
           message: 'Não foi possível carregar as transações.',
           onRetry: () =>
-              ref.read(expenseNotifierProvider.notifier).refreshExpenses(),
+              ref
+                  .read(expenseNotifierProvider.notifier)
+                  .refreshExpenses(syncRemote: true),
         ),
         data: (allExpenses) {
           final filtered = _applyFilters(allExpenses);
@@ -181,7 +185,7 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
                     : RefreshIndicator(
                         onRefresh: () async => ref
                             .read(expenseNotifierProvider.notifier)
-                            .refreshExpenses(),
+                            .refreshExpenses(syncRemote: true),
                         child: ListView.builder(
                           padding: const EdgeInsets.only(bottom: 100),
                           itemCount: sortedKeys.length,

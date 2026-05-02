@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:finwise/core/services/sync_queue_service.dart';
 import 'package:finwise/features/dashboard/data/local_report_datasource.dart';
 import 'package:finwise/features/dashboard/domain/monthly_summary.dart';
 
@@ -44,8 +45,8 @@ class DashboardNotifier extends _$DashboardNotifier {
   @override
   DashboardState build() {
     final now = DateTime.now();
-    // Carrega automaticamente ao montar
-    Future.microtask(() => _load(now.month, now.year));
+    // Reconciles Supabase into Hive before the dashboard reads local data.
+    Future.microtask(refresh);
     return DashboardState(
       selectedMonth: now.month,
       selectedYear: now.year,
@@ -66,6 +67,7 @@ class DashboardNotifier extends _$DashboardNotifier {
 
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+    await ref.read(syncQueueServiceProvider).processQueue(forcePull: true);
     await _load(state.selectedMonth, state.selectedYear);
   }
 

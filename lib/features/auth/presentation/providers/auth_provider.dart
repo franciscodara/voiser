@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:finwise/core/services/sync_queue_service.dart';
 import 'package:finwise/features/auth/data/datasources/supabase_auth_datasource.dart';
 import 'package:finwise/features/expenses/data/datasources/local/expense_hive_datasource.dart';
 
@@ -22,6 +23,7 @@ class AuthStateData {
 @Riverpod(keepAlive: true)
 class AuthNotifier extends _$AuthNotifier {
   StreamSubscription<AuthState>? _authSubscription;
+  String? _lastInitialSyncUserId;
 
   @override
   AuthStateData build() {
@@ -36,7 +38,9 @@ class AuthNotifier extends _$AuthNotifier {
       final session = event.session;
       if (session != null) {
         state = AuthStateData(status: AuthStatus.authenticated, user: session.user);
+        _startInitialSync(session.user);
       } else {
+        _lastInitialSyncUserId = null;
         state = const AuthStateData(status: AuthStatus.unauthenticated, user: null);
       }
     });
@@ -46,10 +50,29 @@ class AuthNotifier extends _$AuthNotifier {
     });
 
     if (initialUser != null) {
+      _startInitialSync(initialUser);
       return AuthStateData(status: AuthStatus.authenticated, user: initialUser);
     } else {
       return const AuthStateData(status: AuthStatus.unauthenticated, user: null);
     }
+  }
+
+  void _startInitialSync(User user) {
+    if (_lastInitialSyncUserId == user.id) return;
+    _lastInitialSyncUserId = user.id;
+
+    unawaited(
+      Future.microtask(() async {
+        try {
+          await ref
+              .read(syncQueueServiceProvider)
+              .processQueue(forcePull: true);
+        } catch (e, st) {
+          debugPrint('[Auth] Falha no sync inicial: $e');
+          debugPrintStack(stackTrace: st, maxFrames: 5);
+        }
+      }),
+    );
   }
 
   Future<void> signIn(String email, String password) async {
@@ -108,6 +131,7 @@ class AuthNotifier extends _$AuthNotifier {
     } catch (e) {
       debugPrint('Error during sign out: $e');
     } finally {
+      _lastInitialSyncUserId = null;
       state = const AuthStateData(status: AuthStatus.unauthenticated, user: null);
     }
   }

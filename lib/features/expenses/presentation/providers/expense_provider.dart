@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:finwise/core/services/sync_queue_service.dart';
 import 'package:finwise/features/expenses/domain/entities/expense.dart';
 import 'package:finwise/features/expenses/data/repositories/expense_repository_impl.dart';
 
@@ -38,7 +39,11 @@ class ExpenseNotifier extends _$ExpenseNotifier {
     await repo.deleteExpense(expenseToDelete);
   }
 
-  Future<void> refreshExpenses() async {
+  Future<void> refreshExpenses({bool syncRemote = false}) async {
+    if (syncRemote) {
+      await ref.read(syncQueueServiceProvider).processQueue(forcePull: true);
+    }
+
     final repo = ref.read(expenseRepositoryProvider);
     state = AsyncValue.data(await repo.getLocalExpenses());
   }
