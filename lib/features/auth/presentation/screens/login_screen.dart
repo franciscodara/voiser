@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/finwise_button.dart';
+import '../../../../core/widgets/brand_logo.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -91,12 +92,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 color: Theme.of(context).colorScheme.primary,
               ).animate().fade(duration: 500.ms).scale(curve: Curves.easeOutBack),
               const SizedBox(height: 24),
-              Text(
-                'Voiser',
-                style: AppTextStyles.display.copyWith(
-                  color: Theme.of(context).textTheme.displayLarge?.color,
-                ),
-                textAlign: TextAlign.center,
+              BrandLogo(
+                fontSize: 42,
+                iconSize: 0, // O ícone já está acima
+                mainAxisAlignment: MainAxisAlignment.center,
               ).animate().fade(delay: 200.ms, duration: 500.ms).slideY(begin: 0.2),
               const SizedBox(height: 8),
               Text(

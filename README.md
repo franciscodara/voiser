@@ -118,6 +118,6 @@ Para desenvolver e rodar o app no Linux (focado no emulador Android ou aplicaç�
 O FinWise utiliza uma abordagem modular baseada em "Features" para garantir escalabilidade e manutenção simples. 
 
 - `lib/core/` - Utilitários globais, temas da aplicação, rotas, componentes reutilizáveis e abstrações principais.
-- `lib/features/` - Cada domínio/funcionalidade do app fica isolado na sua pasta. (ex: `expenses`, com seu controle local via Hive e remoto via Google Sheets).
+- `lib/features/` - Cada domínio/funcionalidade do app fica isolado na sua pasta. (ex: `expenses`, com seu controle local via Hive e remoto via Supabase).
 
-Para debugar a camada do Google Sheets ou o DataSource do Hive, confira `lib/features/expenses/data/datasources/`.
+Para debugar a camada do Supabase ou o DataSource do Hive, confira `lib/features/expenses/data/datasources/`.

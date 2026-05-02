@@ -93,7 +93,7 @@ class _ExpenseListScreenState extends ConsumerState<ExpenseListScreen> {
     ref.read(syncQueueServiceProvider).processQueue();
 
     if (!context.mounted) return;
-    AppFeedback.info(context, 'Sincronizando com Google Sheets...');
+    AppFeedback.info(context, 'Sincronizando dados...');
   }
 
   @override

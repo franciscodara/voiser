@@ -31,7 +31,7 @@ mixin _$Expense {
   TransactionType get type => throw _privateConstructorUsedError;
   EntryOrigin get origin => throw _privateConstructorUsedError;
 
-  /// true = sincronizado com Sheets; false = pendente
+/// true = sincronizado com Supabase; false = pendente
   bool get synced => throw _privateConstructorUsedError;
 
   /// true = excluído logicamente offline; false = ativo
@@ -334,7 +334,7 @@ class _$ExpenseImpl implements _Expense {
   @JsonKey()
   final EntryOrigin origin;
 
-  /// true = sincronizado com Sheets; false = pendente
+/// true = sincronizado com Supabase; false = pendente
   @override
   @JsonKey()
   final bool synced;
@@ -462,7 +462,7 @@ abstract class _Expense implements Expense {
   @override
   EntryOrigin get origin;
 
-  /// true = sincronizado com Sheets; false = pendente
+/// true = sincronizado com Supabase; false = pendente
   @override
   bool get synced;
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
+import 'package:finwise/core/widgets/brand_logo.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -12,7 +13,7 @@ class SupportScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Fale Conosco', style: AppTextStyles.title),
+        title: BrandLogo(fontSize: 20, iconSize: 24),
         centerTitle: false,
       ),
       body: SingleChildScrollView(

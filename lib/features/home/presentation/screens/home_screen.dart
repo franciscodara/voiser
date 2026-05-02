@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/core/widgets/app_drawer.dart';
+import 'package:finwise/core/widgets/brand_logo.dart';
 import 'package:finwise/core/widgets/shimmer_box.dart';
 import 'package:finwise/core/widgets/speed_dial_fab.dart';
 import 'package:finwise/core/widgets/sync_status_banner.dart';
@@ -147,7 +148,7 @@ class _HomeContentState extends ConsumerState<_HomeContent> {
           tooltip: 'Menu',
           onPressed: widget.onOpenDrawer,
         ),
-        title: Text('Voiser', style: AppTextStyles.title),
+        title: BrandLogo(fontSize: 22, iconSize: 26),
         centerTitle: false,
       ),
       body: Column(

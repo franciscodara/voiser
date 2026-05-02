@@ -22,7 +22,7 @@ class Expense with _$Expense {
     required double amount,
     @Default(TransactionType.expense) TransactionType type,
     @Default(EntryOrigin.manual) EntryOrigin origin,
-    /// true = sincronizado com Sheets; false = pendente
+    /// true = sincronizado com Supabase; false = pendente
     @Default(false) bool synced,
     /// true = excluído logicamente offline; false = ativo
     @Default(false) bool deleted,

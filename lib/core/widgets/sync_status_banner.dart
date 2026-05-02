@@ -39,7 +39,7 @@ class SyncStatusBanner extends ConsumerWidget {
       case SyncStatus.syncing:
         return _BannerTile(
           icon: Icons.sync_rounded,
-          message: 'Sincronizando com Google Sheets...',
+          message: 'Sincronizando dados...',
           backgroundColor: const Color(0xFF0EA5E9),
           animated: true,
         );

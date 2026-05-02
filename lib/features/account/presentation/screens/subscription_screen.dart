@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:finwise/core/widgets/brand_logo.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
 import 'package:finwise/features/subscription/presentation/providers/plan_provider.dart';
 
@@ -43,7 +44,7 @@ class SubscriptionScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Assinatura', style: AppTextStyles.title),
+        title: BrandLogo(fontSize: 20, iconSize: 24),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -138,18 +139,10 @@ class SubscriptionScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.workspace_premium_rounded,
-                        color: Color(0xFFFBBF24),
-                        size: 28,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Voiser Premium',
-                        style: AppTextStyles.title.copyWith(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
+                      BrandLogo(
+                        fontSize: 20,
+                        iconSize: 24,
+                        color: Colors.white,
                       ),
                     ],
                   ),

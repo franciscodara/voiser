@@ -5,6 +5,7 @@ import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
 import 'package:finwise/core/widgets/drawer_header.dart';
 import 'package:finwise/core/widgets/drawer_item.dart';
+import 'package:finwise/core/widgets/brand_logo.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
 
 /// Drawer lateral principal do FinWise.
@@ -162,15 +163,13 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.account_balance_wallet_outlined,
-                  size: 13,
-                  color: theme.textTheme.bodySmall?.color
-                      ?.withValues(alpha: 0.3),
+                BrandLogo(
+                  iconSize: 14,
+                  fontSize: 12,
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3),
                 ),
-                const SizedBox(width: 6),
                 Text(
-                  'Voiser  ·  v1.0.0',
+                  '  ·  v1.0.0',
                   style: AppTextStyles.label.copyWith(
                     color: theme.textTheme.bodySmall?.color
                         ?.withValues(alpha: 0.3),

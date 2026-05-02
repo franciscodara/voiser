@@ -55,8 +55,8 @@ class SettingsScreen extends StatelessWidget {
                 isComingSoon: true,
               ),
               _SettingsItem(
-                icon: Icons.table_chart_outlined,
-                label: 'Configurar Google Sheets',
+                icon: Icons.cloud_sync_rounded,
+                label: 'Configurar sincronizacao',
                 color: const Color(0xFF34D399),
                 isComingSoon: true,
               ),
