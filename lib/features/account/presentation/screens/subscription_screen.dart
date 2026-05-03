@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:finwise/core/constants/app_colors.dart';
 import 'package:finwise/core/theme/app_text_styles.dart';
+import 'package:finwise/core/utils/app_feedback.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:finwise/core/widgets/brand_logo.dart';
 import 'package:finwise/features/auth/presentation/providers/auth_provider.dart';
@@ -16,13 +17,23 @@ class SubscriptionScreen extends ConsumerWidget {
     if (user == null) return;
 
     // Idealmente você coloca seu link real no .env (STRIPE_PAYMENT_LINK)
-    final baseLink = dotenv.env['STRIPE_PAYMENT_LINK'] ?? 'https://buy.stripe.com/test_XXXXXXXXXXXX';
+    final baseLink = dotenv.env['STRIPE_PAYMENT_LINK']?.trim();
+    if (baseLink == null ||
+        baseLink.isEmpty ||
+        baseLink.contains('/test_') ||
+        !baseLink.startsWith('https://buy.stripe.com/')) {
+      AppFeedback.error(
+        context,
+        'Pagamento indisponivel no momento. Tente novamente mais tarde.',
+      );
+      return;
+    }
     // O Stripe aceita prefilled_email para já vir com o e-mail preenchido
     final url = Uri.parse('$baseLink?client_reference_id=${user.id}&prefilled_email=${user.email}');
     
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        AppFeedback.error(
           const SnackBar(content: Text('Não foi possível abrir o link de pagamento.')),
         );
       }
