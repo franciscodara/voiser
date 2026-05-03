@@ -10,6 +10,7 @@ Documentos principais:
 - [database.md](database.md): tabelas, campos e RLS.
 - [monetization.md](monetization.md): Stripe, webhook e assinatura.
 - [feature_gate.md](feature_gate.md): bloqueio Free vs Premium.
+- [frontend_backend_contract.md](frontend_backend_contract.md): contratos entre app, Supabase e Stripe.
 - [env.md](env.md): variaveis de ambiente.
 - [walkthrough.md](walkthrough.md): guia de setup e testes.
 
