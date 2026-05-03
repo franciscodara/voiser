@@ -1,6 +1,6 @@
 # Walkthrough
 
-Este guia cobre setup, login, sync e assinatura no estado atual do FinWise.
+Este guia cobre setup, login, sync e assinatura no estado atual do Voiser.
 
 ## 1. Setup do projeto
 

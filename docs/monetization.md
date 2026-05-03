@@ -1,6 +1,6 @@
 # Monetization
 
-O FinWise usa Stripe Payment Link no cliente e tabela `subscriptions` no Supabase para refletir o plano ativo.
+O Voiser usa Stripe Payment Link no cliente e tabela `subscriptions` no Supabase para refletir o plano ativo.
 
 ## Cliente Flutter
 

@@ -1,6 +1,6 @@
-# FinWise Docs
+# Voiser Docs
 
-Esta pasta descreve o estado atual do FinWise apos a migracao para Supabase.
+Esta pasta descreve o estado atual do Voiser apos a migracao para Supabase.
 
 Documentos principais:
 

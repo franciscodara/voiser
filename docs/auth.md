@@ -1,6 +1,6 @@
 # Auth
 
-O FinWise usa Supabase Auth com email e senha.
+O Voiser usa Supabase Auth com email e senha.
 
 ## Implementacao
 

@@ -1,6 +1,6 @@
 # Sync
 
-O FinWise usa sincronizacao offline-first com Hive local e Supabase remoto.
+O Voiser usa sincronizacao offline-first com Hive local e Supabase remoto.
 
 ## Componentes
 

@@ -1,6 +1,6 @@
 # Architecture
 
-O FinWise e um aplicativo Flutter offline-first para controle financeiro pessoal. O app usa Riverpod para estado, GoRouter para navegacao, Hive para armazenamento local, Supabase como backend principal e Stripe para monetizacao.
+O Voiser e um aplicativo Flutter offline-first para controle financeiro pessoal. O app usa Riverpod para estado, GoRouter para navegacao, Hive para armazenamento local, Supabase como backend principal e Stripe para monetizacao.
 
 ## Visao geral
 

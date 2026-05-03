@@ -1,6 +1,6 @@
 # Database
 
-Supabase PostgreSQL e a base remota oficial do FinWise.
+Supabase PostgreSQL e a base remota oficial do Voiser.
 
 ## Tabela expenses
 
