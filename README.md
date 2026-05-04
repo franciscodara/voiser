@@ -1,4 +1,4 @@
-# FinWise
+# Voiser
 
 Um aplicativo financeiro completo construído com Flutter. 
 
@@ -14,6 +14,12 @@ Para verificar se o seu ambiente está corretamente configurado, rode o comando 
 flutter doctor
 ```
 Certifique-se de resolver quaisquer "issues" que o `flutter doctor` relatar antes de prosseguir.
+
+---
+
+## 📕 Documentação Tecnica para times de desenvolvimento
+
+- [docs\README.md](docs\README.md): visao geral da arquitetura.
 
 ---
 
