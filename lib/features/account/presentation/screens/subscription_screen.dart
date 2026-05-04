@@ -34,7 +34,8 @@ class SubscriptionScreen extends ConsumerWidget {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
         AppFeedback.error(
-          const SnackBar(content: Text('Não foi possível abrir o link de pagamento.')),
+          context,
+          'Nao foi possivel abrir o link de pagamento.',
         );
       }
     } else {
