@@ -2,6 +2,12 @@
 
 Um aplicativo financeiro completo construído com Flutter. 
 
+## 📕 Documentação Técnica para times de desenvolvimento
+
+- [docs\README.md](docs\README.md): visao geral da arquitetura.
+
+---
+
 ## 🚀 Pré-requisitos (Comum a todos os SOs)
 
 Antes de começar, certifique-se de ter instalado em sua máquina:
@@ -17,11 +23,6 @@ Certifique-se de resolver quaisquer "issues" que o `flutter doctor` relatar ante
 
 ---
 
-## 📕 Documentação Tecnica para times de desenvolvimento
-
-- [docs\README.md](docs\README.md): visao geral da arquitetura.
-
----
 
 ## 🍎 Executando no MacOS
 
@@ -121,7 +122,7 @@ Para desenvolver e rodar o app no Linux (focado no emulador Android ou aplicaç�
 
 ## 📦 Visão Geral da Arquitetura
 
-O FinWise utiliza uma abordagem modular baseada em "Features" para garantir escalabilidade e manutenção simples. 
+O Voiser utiliza uma abordagem modular baseada em "Features" para garantir escalabilidade e manutenção simples. 
 
 - `lib/core/` - Utilitários globais, temas da aplicação, rotas, componentes reutilizáveis e abstrações principais.
 - `lib/features/` - Cada domínio/funcionalidade do app fica isolado na sua pasta. (ex: `expenses`, com seu controle local via Hive e remoto via Supabase).
