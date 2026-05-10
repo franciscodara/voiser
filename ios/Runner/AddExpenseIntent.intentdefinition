@@ -9,7 +9,7 @@
 		<key>className</key>
 		<string>AddExpenseIntent</string>
 		<key>description</key>
-		<string>Adiciona uma despesa no FinWise usando voz</string>
+		<string>Adiciona uma despesa no Voiser usando voz</string>
 		<key>parameters</key>
 		<array>
 			<dict>

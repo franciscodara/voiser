@@ -47,3 +47,7 @@ app.*.map.json
 # Dotenv
 .env
 
+# Android release signing
+/android/key.properties
+/android/app/keystore.jks
+
